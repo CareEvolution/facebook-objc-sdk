@@ -470,17 +470,19 @@ typedef void (^FBSDKAuthenticationCompletionHandler)(NSURL *_Nullable callbackUR
 
 - (void)_setSessionCompletionHandlerFromHandler:(void(^)(BOOL, NSError *))handler
 {
-    __weak typeof(self) weakSelf = self;
-    _authenticationSessionCompletionHandler = ^ (NSURL *aURL, NSError *error) {
-        typeof(self) strongSelf = weakSelf;
-        strongSelf->_isRequestingSFAuthenticationSession = NO;
-        handler(error == nil, error);
-        if (error == nil) {
-            [strongSelf application:[UIApplication sharedApplication] openURL:aURL sourceApplication:@"com.apple" annotation:nil];
-        }
-        strongSelf->_authenticationSession = nil;
-        strongSelf->_authenticationSessionCompletionHandler = nil;
-    };
+  __weak typeof(self) weakSelf = self;
+  _authenticationSessionCompletionHandler = ^ (NSURL *aURL, NSError *error) {
+    typeof(self) strongSelf = weakSelf;
+    if (aURL || error) {
+      strongSelf->_isRequestingSFAuthenticationSession = NO;
+      handler(error == nil, error);
+      if (error == nil) {
+        [strongSelf application:[UIApplication sharedApplication] openURL:aURL sourceApplication:@"com.apple" annotation:nil];
+      }
+      strongSelf->_authenticationSession = nil;
+      strongSelf->_authenticationSessionCompletionHandler = nil;
+    }
+  };
 }
 
 #pragma mark -- SFSafariViewControllerDelegate
